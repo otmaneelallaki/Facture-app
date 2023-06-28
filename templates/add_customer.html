@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<br><br><br><br>
+
+<h1 class="text-capitalize text-center mx-10 bg-dark text-white"> Registrar un nuevo cliente </h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="name"> apellido </label>
+            <input name="name" required type="text" class="form-control" id="name"
+                placeholder="Nombre y apellido del cliente">
+        </div> 
+
+        <div class="form-group col-md-4">
+            <label for="email"> Email </label>
+            <input name="email" required type="email" class="form-control" id="email" placeholder="cliente email">
+        </div>
+
+        <div class="form-group col-md-2">
+            <label for="phone"> Teléfono </label>
+            <input name="phone" required type="number" class="form-control" id="phone"
+                placeholder="número de teléfono del cliente">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="sex">Sexo</label>
+            <select name="sex" class="form-control" required id="sex">
+                <option> Elige el genero.. </option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+            </select>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label for="age"> Edad </label>
+            <input name="age" required type="number" min="10" class="form-control" id="age"
+                placeholder="edad del cliente">
+        </div>
+
+    </div>
+
+    <div class="form-row">
+        <div class="form-group col-md-12">
+            <label for="addres"> DIRECCIÓN </label>
+            <input name="address" type="text" required type="text" class="form-control" id="address"
+                placeholder="Dirección del cliente">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="city"> Ciudad </label>
+            <input name="city" type="text" class="form-control" id="city" placeholder="Ciudad del cliente">
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary"> Ahorrar</button>
+
+</form>
+
+<br><br><br>
+
+{% endblock content %}
