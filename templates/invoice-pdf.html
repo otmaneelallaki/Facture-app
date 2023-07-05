@@ -43,20 +43,26 @@
         .invoice-details th,
         .invoice-details td {
             padding: 10px;
-            border: 1px solid #dddddd;
+            border: 1px solid #949090;
         }
 
         .invoice-details th {
             background-color: #f5f5f5;
         }
 
-        .invoice-total {
-            margin-top: 20px;
-            text-align: right;
+
+
+        table td#CELL9 {background-color:rgb(202, 202, 205);}
+        table td#subtot {background-color:rgb(202, 205, 202);}
+        table td#total {background-color:rgb(128, 220, 128);}
+
+
+        .invoice-tot td {
+          width: 150px;
+          text-align: left;
+          border: 0.5px solid rgb(255, 253, 253);
+          padding: 5px;
         }
-
-        .table_invoice {border: none;}
-
 
         
 
@@ -89,9 +95,12 @@
 
     <div class="client-info">
         <address>
-            <p><b>Cliente :</b></p>
-            {{obj.customer.name}}<br>
-            {{obj.customer.address}},<br>
+            <b>Cliente :</b>
+         &nbsp;&nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;{{obj.customer.name}}<br>
+            <b> N.I.F :</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp;{{obj.customer.age}}<br>
+            <b>DOMICILIO :</b> &nbsp; &nbsp;{{obj.customer.address}},<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             {{obj.customer.city}}, Espania
         </address>
     </div>
@@ -106,13 +115,15 @@
                     <td  style="font-size:15px;">
                         <span style="color: rgb(55, 108, 33)">  Número de factura : <br>
                         </span>
-                        #00{{obj.id}}
+                        
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; #00{{obj.id}}
                     </td>
 
                     <td class="fac_date" style="font-size:15px;">
                         <div>
                             <span style="color: rgb(55, 108, 33)">Fecha de la factura: <br>
-                            </span>  {{obj.invoice_date_time}}
+                            </span>  
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ obj.invoice_date_time|date:'Y-m-d' }} {{obj.invoice_date_time|time:"h:i a"}}
                         </div>
                     </td>
                 </tr>
@@ -124,8 +135,8 @@
 
 
         <table>
-            <thead>
-                <tr style="font-size:13px;">
+            <thead >
+                <tr style="font-size:10px;" >
                     <th>Servicio</th>
                     <th>Cantidad</th>
                     <th>Precio unitario</th>
@@ -166,43 +177,68 @@
                       </tr>
                      {% endfor %} 
                       
-                      <br><br>
+
+            </tbody>
+        </table>
+    </div>
+    <br><br>
+
+<div>
+        <table class = invoice-tot>
+           
+            <tbody>
+                <!-- Iterate over your invoice items and generate rows dynamically -->
+                
+                <tr style="width:70%">
+                    <td colspan="4" style="width:70%"></td>
+                  
+                    <td colspan="1" id = "subtot">
+                        <p>
+                            Subtotal<br>
+                        </p>
+                    </td>			
+                    <td id = "subtot">
+                        <p>
+                            {{obj.get_total}} €<br>
+                        </p>
+                    </td>
+                    
+                </tr>
+
+                <tr>
+                    <td  colspan="4"></td>
+                  
+                    <td id="CELL9">
+                            I.V.A
+                    </td>			
+                    <td id="CELL9" >
+                        <p>
+                            {{obj.tax}} %<br>
+                        </p>
+                    </td>
+                    
+                </tr>
                       <tr>
-                          <td>Comment: {{obj.comments}}</td>
-                          <td colspan="2">
-                              <p>
-                                  Subtotal<br>
-                                  Tax<br>
-                              </p>
+                          <td colspan="4"></td>
+                        
+                          <td colspan="1" id = "total">
+                              
                               <h1 class="text-success"><strong>Total</strong></h1>
                           </td>			
-                          <td>
-                              <p>
-                                  {{obj.get_total}} €<br>
-                                  {{obj.tax}} %<br>
-                              </p>
+                          <td id = total>
+                              
                               <h5 class="text-success"><strong>{{obj.get_total_taxed}} EURO</strong></h5>
                           </td>
                           
                       </tr>
+
+                      
             </tbody>
         </table>
-    </div>
 
     
 <br>
-    <div right> 
-        PAID:                    
-
-    {% if obj.paid  %}
-
-       <strong style="color: green;">YES</strong>
-    {% else %}
-        <strong style="color: red;">NO</strong>
-
-    {% endif %}
-    </div> 
-
+   
     <br> <br><br><br><br>
 
     <footer>

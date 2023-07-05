@@ -23,7 +23,7 @@ class Customer(models.Model):
 
     sex = models.CharField(max_length=1, choices=SEX_TYPES)
 
-    age = models.CharField(max_length=12)
+    age = models.CharField(max_length=20)
 
     city = models.CharField(max_length=32)
 

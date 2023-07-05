@@ -114,8 +114,8 @@ class AddCustomerView(LoginRequiredSuperuserMixim, View):
             'email': request.POST.get('email'),
             'phone': request.POST.get('phone'),
             'address': request.POST.get('address'),
-            'sex': request.POST.get('sex'),
-            'age': request.POST.get('age'),
+            'sex': "Homme",#request.POST.get('sex'),
+            'age': "#",# request.POST.get('age'),
             'city': request.POST.get('city'),
             'save_by': request.user
 
@@ -261,8 +261,8 @@ def get_invoice_pdf(request, *args, **kwargs):
     #return response
     # Create a Django response object, and specify content_type as pdf
     response = HttpResponse(content_type='application/pdf')
-    name = "Facture Nº {}".format(pk)
-    response['Content-Disposition'] = 'attachment'
+    name = "Facture Nº {}.pdf".format(pk)
+    response['Content-Disposition'] =  'attachment; filename= "%s"' % name #'attachment'
 
     # create a pdf
     pisa_status = pisa.CreatePDF(html, dest=response)
