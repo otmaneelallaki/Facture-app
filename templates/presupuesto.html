@@ -6,10 +6,10 @@
 {% block content %}
 
 <div class="doc-topbar">
-    <a href="{% url 'invoice-pdf' pk=obj.pk %}" class="btn btn-primary">
+    <a href="{% url 'presupuesto-pdf' pk=obj.pk %}" class="btn btn-primary">
         <i class="icon-download"></i> Download
     </a>
-    <a href="{% url 'invoice-pdf' pk=obj.pk %}?inline=1" target="_blank" class="btn btn-secondary">
+    <a href="{% url 'presupuesto-pdf' pk=obj.pk %}?inline=1" target="_blank" class="btn btn-secondary">
         <i class="icon-printer"></i> Print
     </a>
 </div>
@@ -30,30 +30,15 @@
         <div class="doc-party">
             <div class="doc-party-title">Para:</div>
             <div class="doc-party-name doc-party-name-client">{{ obj.customer.name }}</div>
-            <div class="doc-party-line">{{ obj.customer.address }},</div>
-            <div class="doc-party-line">{{ obj.customer.city }}, ESPAÑA</div>
-        </div>
-
-        <div class="doc-party">
-            <div class="doc-party-title">Factura:</div>
-            <div class="doc-party-line">Nº 00{{ obj.id }}</div>
-            <div class="doc-party-line">{{ obj.invoice_date_time|date:'d/m/Y' }}</div>
-            <div class="doc-party-line">
-                {% if obj.paid %}
-                <span class="doc-status-pill status-yes">Pagada</span>
-                {% else %}
-                <span class="doc-status-pill status-no">Pendiente</span>
-                {% endif %}
-            </div>
         </div>
     </div>
 
     <table class="doc-table">
         <thead>
             <tr>
-                <th class="doc-col-concepto">Servicio</th>
+                <th class="doc-col-concepto">Concepto</th>
                 <th class="doc-col-num">Cantidad</th>
-                <th class="doc-col-num">Precio unitario</th>
+                <th class="doc-col-num">Importe</th>
                 <th class="doc-col-num">IVA</th>
                 <th class="doc-col-num">Total</th>
             </tr>
@@ -73,8 +58,9 @@
 
     <div class="doc-bottom">
         <div class="doc-payment">
+            <div class="doc-section-title">Método de pago:</div>
+            <div>Transferencia bancaria: ES94 2100 3327 9921 0062 8949</div>
             {% if obj.comments %}
-            <div class="doc-section-title">Comentarios:</div>
             <div class="doc-comments">{{ obj.comments }}</div>
             {% endif %}
         </div>
@@ -97,6 +83,26 @@
                 <span>{{ obj.get_total_taxed|eur }}</span>
             </div>
         </div>
+    </div>
+
+    <div class="doc-tax-breakdown">
+        <div class="doc-section-title doc-tax-title">Desglose impuestos:</div>
+        <table class="doc-tax-table">
+            <thead>
+                <tr>
+                    <th>Base imponible</th>
+                    <th>IVA/IGIC</th>
+                    <th>Total IVA/IGIC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ obj.get_total|eur }}</td>
+                    <td>{{ obj.tax|pct }}</td>
+                    <td>{{ obj.get_tax_amount|eur }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
 </div>

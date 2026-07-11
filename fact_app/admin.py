@@ -10,11 +10,16 @@ class AdminCustomer(admin.ModelAdmin):
     list_display = ('name', 'email', 'phone', 'address', 'sex', 'age', 'city')
 
 class AdminInvoice(admin.ModelAdmin):
-    list_display = ('customer', 'save_by', 'invoice_date_time', 'total', 'last_updated_date', 'paid','tax')    
+    list_display = ('customer', 'save_by', 'invoice_date_time', 'total', 'last_updated_date', 'paid','tax')
+
+class AdminPresupuesto(admin.ModelAdmin):
+    list_display = ('customer', 'save_by', 'presupuesto_date_time', 'valid_until', 'status', 'tax')
 
 admin.site.register(Customer, AdminCustomer)
 admin.site.register(Invoice, AdminInvoice)
 admin.site.register(Article)
+admin.site.register(Presupuesto, AdminPresupuesto)
+admin.site.register(PresupuestoArticle)
 
 admin.site.site_title = _("Mohamed Compañía")
 admin.site.site_header = _("Mohamed Compañía")

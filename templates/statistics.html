@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load doc_extras %}
+
+{% block content %}
+
+<div class="page-header">
+   <div>
+      <h1>Estadísticas</h1>
+      <p>Resumen de la actividad de facturación y presupuestos.</p>
+   </div>
+</div>
+
+<div class="stat-grid">
+   <div class="stat-tile">
+      <div class="stat-tile-label">Facturas totales</div>
+      <div class="stat-tile-value">{{ total_invoices }}</div>
+      <div class="stat-tile-sub">{{ paid_invoices_count }} cobradas · {{ pending_invoices_count }} pendientes</div>
+   </div>
+   <div class="stat-tile">
+      <div class="stat-tile-label">Presupuestos totales</div>
+      <div class="stat-tile-value">{{ total_presupuestos }}</div>
+      <div class="stat-tile-sub">Borrador, enviado, aceptado o rechazado</div>
+   </div>
+   <div class="stat-tile">
+      <div class="stat-tile-label">Ingresos cobrados</div>
+      <div class="stat-tile-value is-success">{{ total_collected|eur }}</div>
+      <div class="stat-tile-sub">Total de facturas pagadas</div>
+   </div>
+   <div class="stat-tile">
+      <div class="stat-tile-label">Pendiente de cobro</div>
+      <div class="stat-tile-value is-warning">{{ total_pending|eur }}</div>
+      <div class="stat-tile-sub">Total de facturas sin pagar</div>
+   </div>
+</div>
+
+<div class="app-card">
+   <div class="viz-section-title">Facturación de los últimos 6 meses</div>
+   <div class="viz-section-sub">Importe total con IVA, desglosado por estado de cobro.</div>
+
+   <div class="viz-legend">
+      <div class="viz-legend-item">
+         <span class="viz-legend-swatch" style="background: var(--chart-success);"></span> Cobrado
+      </div>
+      <div class="viz-legend-item">
+         <span class="viz-legend-swatch" style="background: var(--chart-warning);"></span> Pendiente
+      </div>
+   </div>
+
+   {% if monthly_data %}
+   <div class="viz-bars">
+      {% for month in monthly_data %}
+      <div class="viz-bar-col">
+         <div class="viz-bar-stack" tabindex="0">
+            <div class="viz-tooltip">
+               <strong>{{ month.label }}</strong><br>
+               Cobrado: {{ month.collected|eur }}<br>
+               Pendiente: {{ month.pending|eur }}<br>
+               Total: {{ month.total|eur }}
+            </div>
+            <div class="viz-bar-seg seg-pending" style="height: {{ month.pending_pct }}%;"></div>
+            <div class="viz-bar-seg seg-collected" style="height: {{ month.collected_pct }}%;"></div>
+         </div>
+      </div>
+      {% endfor %}
+   </div>
+   <div class="viz-bar-labels">
+      {% for month in monthly_data %}
+      <span>{{ month.label }}</span>
+      {% endfor %}
+   </div>
+
+   <table class="viz-table">
+      <thead>
+         <tr>
+            <th>Mes</th>
+            <th>Cobrado</th>
+            <th>Pendiente</th>
+            <th>Total</th>
+         </tr>
+      </thead>
+      <tbody>
+         {% for month in monthly_data %}
+         <tr>
+            <td>{{ month.label }}</td>
+            <td>{{ month.collected|eur }}</td>
+            <td>{{ month.pending|eur }}</td>
+            <td>{{ month.total|eur }}</td>
+         </tr>
+         {% endfor %}
+      </tbody>
+   </table>
+   {% else %}
+   <p class="viz-empty">Todavía no hay facturas registradas.</p>
+   {% endif %}
+</div>
+
+<div class="app-card">
+   <div class="viz-section-title">Presupuestos por estado</div>
+   <div class="viz-section-sub">Distribución de todos los presupuestos según su estado actual.</div>
+
+   {% if status_data %}
+   {% for status in status_data %}
+   <div class="viz-status-row">
+      <div class="viz-status-label">{{ status.label }}</div>
+      <div class="viz-status-track">
+         <div class="viz-status-fill viz-status-fill-{{ status.code }}" style="width: {{ status.pct }}%;"></div>
+      </div>
+      <div class="viz-status-count">{{ status.count }} ({{ status.pct }}%)</div>
+   </div>
+   {% endfor %}
+   {% else %}
+   <p class="viz-empty">Todavía no hay presupuestos registrados.</p>
+   {% endif %}
+</div>
+
+<div class="app-card">
+   <div class="viz-section-title">Mejores clientes</div>
+   <div class="viz-section-sub">Top 5 clientes por ingresos cobrados.</div>
+
+   {% if top_customers %}
+   <table class="viz-table">
+      <thead>
+         <tr>
+            <th>Cliente</th>
+            <th>Ingresos cobrados</th>
+         </tr>
+      </thead>
+      <tbody>
+         {% for customer, total in top_customers %}
+         <tr>
+            <td>{{ customer.name }}</td>
+            <td>{{ total|eur }}</td>
+         </tr>
+         {% endfor %}
+      </tbody>
+   </table>
+   {% else %}
+   <p class="viz-empty">Todavía no hay facturas cobradas.</p>
+   {% endif %}
+</div>
+
+{% endblock content %}

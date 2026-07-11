@@ -5,10 +5,12 @@ from django.contrib import messages
 
 from django.db import transaction
 
-from .utils import pagination, get_invoice
+from .utils import pagination, get_invoice, get_presupuesto, get_statistics
 
 from xhtml2pdf import pisa
 import datetime
+import os
+from django.conf import settings
 from django.template.loader import get_template
 from django.http import HttpResponse
 
@@ -31,6 +33,21 @@ from django.utils.translation import gettext as _
 
 
 # Create your views here.
+
+class LandingView(LoginRequiredSuperuserMixim, View):
+    """ Landing page: entry point offering Facturas or Presupuestos """
+
+    template_name = 'landing.html'
+
+    def get(self, request, *args, **kwargs):
+
+        context = {
+            'invoices_count': Invoice.objects.count(),
+            'presupuestos_count': Presupuesto.objects.count(),
+        }
+
+        return render(request, self.template_name, context)
+
 
 class HomeView(LoginRequiredSuperuserMixim, View):
     """ Main view """
@@ -151,15 +168,14 @@ class AddInvoiceView(LoginRequiredSuperuserMixim, View):
     def get(self, request, *args, **kwargs):
         return  render(request, self.template_name, self.context)
 
-    @transaction.atomic()
     def post(self, request, *args, **kwargs):
 
-        items = []
-
-        try: 
+        try:
 
             customer = request.POST.get('customer')
 
+            if not customer:
+                raise ValueError(_("Debes seleccionar un cliente."))
 
             articles = request.POST.getlist('article')
 
@@ -172,40 +188,41 @@ class AddInvoiceView(LoginRequiredSuperuserMixim, View):
             total = 0 #request.POST.get('total')
 
             comment = request.POST.get('comment')
-            
+
             tax = request.POST.get('tax')
 
-            invoice_object = {
-                'customer_id': customer,
-                'save_by': request.user,
-                'total': total,
-                'comments': comment,
-                'tax' : tax,
-            }
+            with transaction.atomic():
 
-            invoice = Invoice.objects.create(**invoice_object)
+                invoice_object = {
+                    'customer_id': customer,
+                    'save_by': request.user,
+                    'total': total,
+                    'comments': comment,
+                    'tax' : tax,
+                }
 
-            for index, article in enumerate(articles):
+                invoice = Invoice.objects.create(**invoice_object)
 
-                data = Article(
-                    invoice_id = invoice.id,
-                    name = article,
-                    quantity=qties[index],
-                    unit_price = units[index],
-                    total = total_a[index],
-                )
+                items = []
 
-                items.append(data)
+                for index, article in enumerate(articles):
 
-            created = Article.objects.bulk_create(items)   
+                    data = Article(
+                        invoice_id = invoice.id,
+                        name = article,
+                        quantity=qties[index],
+                        unit_price = units[index],
+                        total = total_a[index],
+                    )
 
-            if created:
-                messages.success(request, _("Data saved successfully.")) 
-            else:
-                messages.error(request, _("Sorry, please try again the sent data is corrupt."))    
+                    items.append(data)
+
+                Article.objects.bulk_create(items)
+
+            messages.success(request, _("Data saved successfully."))
 
         except Exception as e:
-            messages.error(request, f"Sorry the following error has occured {e}.") 
+            messages.error(request, f"Sorry the following error has occured {e}.")
 
         return  render(request, self.template_name, self.context)
     
@@ -262,7 +279,8 @@ def get_invoice_pdf(request, *args, **kwargs):
     # Create a Django response object, and specify content_type as pdf
     response = HttpResponse(content_type='application/pdf')
     name = "Facture Nº {}.pdf".format(pk)
-    response['Content-Disposition'] =  'attachment; filename= "%s"' % name #'attachment'
+    disposition = 'inline' if request.GET.get('inline') else 'attachment'
+    response['Content-Disposition'] = '%s; filename= "%s"' % (disposition, name)
 
     # create a pdf
     pisa_status = pisa.CreatePDF(html, dest=response)
@@ -270,3 +288,192 @@ def get_invoice_pdf(request, *args, **kwargs):
     if pisa_status.err:
        return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
+
+class PresupuestoHomeView(LoginRequiredSuperuserMixim, View):
+    """ Main view for Presupuestos (price quotes) """
+
+    template_name = 'presupuesto_index.html'
+
+    def get(self, request, *args, **kwargs):
+
+        presupuesto_qs = Presupuesto.objects.select_related('customer', 'save_by').all().order_by('-presupuesto_date_time')
+
+        items = pagination(request, presupuesto_qs)
+
+        return render(request, self.template_name, {'presupuestos': items})
+
+    def post(self, request, *args, **kwargs):
+
+        # modify a presupuesto status
+
+        if request.POST.get('id_modified'):
+
+            status = request.POST.get('status')
+
+            try:
+
+                obj = Presupuesto.objects.get(id=request.POST.get('id_modified'))
+
+                obj.status = status
+
+                obj.save()
+
+                messages.success(request, _("Cambio realizado con éxito."))
+
+            except Exception as e:
+
+                messages.error(request, f"Sorry, the following error has occured {e}.")
+
+        # deleting a presupuesto
+
+        if request.POST.get('id_supprimer'):
+
+            try:
+
+                obj = Presupuesto.objects.get(pk=request.POST.get('id_supprimer'))
+
+                obj.delete()
+
+                messages.success(request, _("La eliminación fue exitosa."))
+
+            except Exception as e:
+
+                messages.error(request, f"Sorry, the following error has occured {e}.")
+
+        presupuesto_qs = Presupuesto.objects.select_related('customer', 'save_by').all().order_by('-presupuesto_date_time')
+
+        items = pagination(request, presupuesto_qs)
+
+        return render(request, self.template_name, {'presupuestos': items})
+
+
+class AddPresupuestoView(LoginRequiredSuperuserMixim, View):
+    """ add a new presupuesto view """
+
+    template_name = 'add_presupuesto.html'
+
+    def get(self, request, *args, **kwargs):
+
+        customers = Customer.objects.select_related('save_by').all()
+
+        return render(request, self.template_name, {'customers': customers})
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+
+            customer = request.POST.get('customer')
+
+            if not customer:
+                raise ValueError(_("Debes seleccionar un cliente."))
+
+            articles = request.POST.getlist('article')
+
+            qties = request.POST.getlist('qty')
+
+            units = request.POST.getlist('unit')
+
+            total_a = request.POST.getlist('total-a')
+
+            comment = request.POST.get('comment')
+
+            tax = request.POST.get('tax')
+
+            valid_until = request.POST.get('valid_until') or None
+
+            with transaction.atomic():
+
+                presupuesto_object = {
+                    'customer_id': customer,
+                    'save_by': request.user,
+                    'comments': comment,
+                    'tax': tax,
+                    'valid_until': valid_until,
+                }
+
+                presupuesto = Presupuesto.objects.create(**presupuesto_object)
+
+                items = []
+
+                for index, article in enumerate(articles):
+
+                    data = PresupuestoArticle(
+                        presupuesto_id=presupuesto.id,
+                        name=article,
+                        quantity=qties[index],
+                        unit_price=units[index],
+                        total=total_a[index],
+                    )
+
+                    items.append(data)
+
+                PresupuestoArticle.objects.bulk_create(items)
+
+            messages.success(request, _("Data saved successfully."))
+
+        except Exception as e:
+            messages.error(request, f"Sorry the following error has occured {e}.")
+
+        customers = Customer.objects.select_related('save_by').all()
+
+        return render(request, self.template_name, {'customers': customers})
+
+
+class PresupuestoVisualizationView(LoginRequiredSuperuserMixim, View):
+    """ This view helps to visualize the presupuesto """
+
+    template_name = 'presupuesto.html'
+
+    def get(self, request, *args, **kwargs):
+
+        pk = kwargs.get('pk')
+
+        context = get_presupuesto(pk)
+
+        return render(request, self.template_name, context)
+
+
+def get_presupuesto_pdf(request, *args, **kwargs):
+    """ generate pdf file from html file for a presupuesto
+
+    Both the "Download" and "Print" actions on the detail page point at this
+    same endpoint so the printed and downloaded documents are always
+    byte-identical. ?inline=1 opens it in the browser's PDF viewer (for
+    printing) instead of forcing a download.
+    """
+
+    pk = kwargs.get('pk')
+
+    context = get_presupuesto(pk)
+
+    context['date'] = datetime.datetime.today()
+
+    context['logo_path'] = os.path.join(settings.BASE_DIR, 'static', 'images', 'Logo.png')
+
+    template = get_template('presupuesto-pdf.html')
+
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    name = "Presupuesto Nº {}.pdf".format(pk)
+    disposition = 'inline' if request.GET.get('inline') else 'attachment'
+    response['Content-Disposition'] = '%s; filename= "%s"' % (disposition, name)
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+
+class StatisticsView(LoginRequiredSuperuserMixim, View):
+    """ Statistics dashboard: revenue, presupuesto status breakdown, top customers """
+
+    template_name = 'statistics.html'
+
+    def get(self, request, *args, **kwargs):
+
+        context = get_statistics()
+
+        return render(request, self.template_name, context)

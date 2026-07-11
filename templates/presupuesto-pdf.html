@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+{% load doc_extras %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Presupuesto</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 12mm 18mm;
+        }
+
+        body {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: #1a1a1a;
+            font-size: 12px;
+        }
+
+        .doc-logo {
+            width: 60px;
+            height: 60px;
+        }
+
+        .doc-parties-table {
+            width: 100%;
+            margin-top: 12px;
+            margin-bottom: 14px;
+        }
+
+        .doc-parties-table td {
+            width: 50%;
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .doc-section-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .doc-party-name {
+            font-weight: bold;
+        }
+
+        .doc-party-name-client {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .doc-party-line {
+            line-height: 16px;
+        }
+
+        .doc-items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 14px;
+        }
+
+        .doc-items th,
+        .doc-items td {
+            border: 1px solid #999999;
+            padding: 6px 10px;
+        }
+
+        .doc-items thead th {
+            background-color: #e7e7e7;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .doc-items td.doc-col-num,
+        .doc-items th.doc-col-num {
+            text-align: right;
+        }
+
+        .doc-bottom-table {
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        .doc-bottom-table td {
+            vertical-align: top;
+        }
+
+        .doc-payment-cell {
+            width: 55%;
+        }
+
+        .doc-totals-cell {
+            width: 45%;
+        }
+
+        .doc-totals-table {
+            width: 100%;
+        }
+
+        .doc-totals-table td {
+            padding: 3px 0;
+        }
+
+        .doc-totals-table td.doc-label {
+            font-weight: bold;
+        }
+
+        .doc-totals-table td.doc-value {
+            text-align: right;
+        }
+
+        .doc-totals-table tr.doc-total-row td {
+            border-top: 1px solid #1a1a1a;
+            font-weight: bold;
+            font-size: 14px;
+            padding-top: 6px;
+        }
+
+        .doc-tax-wrap {
+            width: 100%;
+        }
+
+        .doc-tax-table {
+            border-collapse: collapse;
+            float: right;
+        }
+
+        .doc-tax-table th,
+        .doc-tax-table td {
+            padding: 6px 14px;
+            text-align: right;
+        }
+
+        .doc-tax-table thead th {
+            border-bottom: 1px solid #1a1a1a;
+            font-weight: bold;
+        }
+
+        .doc-tax-table tbody td {
+            border-bottom: 1px solid #1a1a1a;
+        }
+    </style>
+</head>
+
+<body>
+
+    <img src="{{ logo_path }}" class="doc-logo">
+
+    <table class="doc-parties-table">
+        <tr>
+            <td>
+                <div class="doc-section-title">De:</div>
+                <div class="doc-party-name">Mohamed EL ALLAKI</div>
+                <div class="doc-party-line">NIF: Y0520762X</div>
+                <div class="doc-party-line">Ronda O&rsquo;Donnell 2p52,</div>
+                <div class="doc-party-line">Matar&oacute;, ESPA&Ntilde;A</div>
+            </td>
+            <td>
+                <div class="doc-section-title">Para:</div>
+                <div class="doc-party-name-client">{{ obj.customer.name }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="doc-items">
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th class="doc-col-num">Cantidad</th>
+                <th class="doc-col-num">Importe</th>
+                <th class="doc-col-num">IVA</th>
+                <th class="doc-col-num">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles %}
+            <tr>
+                <td><strong>{{ article.name }}</strong></td>
+                <td class="doc-col-num">{{ article.quantity }}</td>
+                <td class="doc-col-num">{{ article.unit_price|eur }}</td>
+                <td class="doc-col-num">{{ obj.tax|pct }}</td>
+                <td class="doc-col-num">{{ article.get_total|eur }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="doc-bottom-table">
+        <tr>
+            <td class="doc-payment-cell">
+                <div class="doc-section-title">M&eacute;todo de pago:</div>
+                <div>Transferencia bancaria: ES94 2100 3327 9921 0062 8949</div>
+                {% if obj.comments %}
+                <div style="margin-top: 10px; font-style: italic;">{{ obj.comments }}</div>
+                {% endif %}
+            </td>
+            <td class="doc-totals-cell">
+                <table class="doc-totals-table">
+                    <tr>
+                        <td class="doc-label">Subtotal</td>
+                        <td class="doc-value">{{ obj.get_total|eur }}</td>
+                    </tr>
+                    <tr>
+                        <td class="doc-label">Base imponible</td>
+                        <td class="doc-value">{{ obj.get_total|eur }}</td>
+                    </tr>
+                    <tr>
+                        <td class="doc-label">IVA/IGIC</td>
+                        <td class="doc-value">{{ obj.get_tax_amount|eur }}</td>
+                    </tr>
+                    <tr class="doc-total-row">
+                        <td>Total</td>
+                        <td class="doc-value">{{ obj.get_total_taxed|eur }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div class="doc-tax-wrap">
+        <table class="doc-tax-table">
+            <thead>
+                <tr>
+                    <th colspan="3" style="text-align: left; border-bottom: none;">Desglose impuestos:</th>
+                </tr>
+                <tr>
+                    <th>Base imponible</th>
+                    <th>IVA/IGIC</th>
+                    <th>Total IVA/IGIC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ obj.get_total|eur }}</td>
+                    <td>{{ obj.tax|pct }}</td>
+                    <td>{{ obj.get_tax_amount|eur }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

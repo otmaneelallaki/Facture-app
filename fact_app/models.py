@@ -73,14 +73,96 @@ class Invoice(models.Model):
 
     @property
     def get_total(self):
-        articles = self.article_set.all()   
+        articles = self.article_set.all()
         total = sum(article.get_total for article in articles)
-        return total    
-    
+        return total
+
+    @property
+    def get_tax_amount(self):
+        return self.get_total * self.tax / 100
+
     def get_total_taxed(self):
-        articles = self.article_set.all()   
+        articles = self.article_set.all()
         total =  sum(article.get_total for article in articles) + sum(article.get_total for article in articles) * self.tax/100
         return total 
+
+
+class Presupuesto(models.Model):
+    """
+    Name: Presupuesto (quote/estimate) model definition
+    Description: a Presupuesto is a price quote sent to a customer before an Invoice is issued.
+    """
+
+    STATUS_CHOICES = (
+        ('draft', _('Borrador')),
+        ('sent', _('Enviado')),
+        ('accepted', _('Aceptado')),
+        ('rejected', _('Rechazado')),
+    )
+
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+
+    save_by = models.ForeignKey(User, on_delete=models.PROTECT)
+
+    presupuesto_date_time = models.DateTimeField(auto_now_add=True)
+
+    valid_until = models.DateField(null=True, blank=True)
+
+    last_updated_date = models.DateTimeField(null=True, blank=True)
+
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+
+    comments = models.TextField(null=True, max_length=1000, blank=True)
+
+    tax = models.DecimalField(max_digits=100, decimal_places=2)
+
+    class Meta:
+        verbose_name = "Presupuesto"
+        verbose_name_plural = "Presupuestos"
+
+    def __str__(self):
+        return f"{self.customer.name}_{self.presupuesto_date_time}"
+
+    @property
+    def get_total(self):
+        articles = self.presupuestoarticle_set.all()
+        total = sum(article.get_total for article in articles)
+        return total
+
+    @property
+    def get_tax_amount(self):
+        return self.get_total * self.tax / 100
+
+    def get_total_taxed(self):
+        articles = self.presupuestoarticle_set.all()
+        total = sum(article.get_total for article in articles) + sum(article.get_total for article in articles) * self.tax/100
+        return total
+
+
+class PresupuestoArticle(models.Model):
+    """
+    Name: PresupuestoArticle model definition
+    Description: a line item that belongs to a Presupuesto
+    """
+
+    presupuesto = models.ForeignKey(Presupuesto, on_delete=models.CASCADE)
+
+    name = models.CharField(max_length=32)
+
+    quantity = models.IntegerField()
+
+    unit_price = models.DecimalField(max_digits=1000, decimal_places=2)
+
+    total = models.DecimalField(max_digits=1000, decimal_places=2)
+
+    class Meta:
+        verbose_name = 'Presupuesto Article'
+        verbose_name_plural = 'Presupuesto Articles'
+
+    @property
+    def get_total(self):
+        total = self.quantity * self.unit_price
+        return total
 
 
 class Article(models.Model):

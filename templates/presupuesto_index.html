@@ -6,11 +6,11 @@
 
 <div class="page-header">
    <div>
-      <h1>Facturas</h1>
-      <p>Consulta, crea y gestiona las facturas de tus clientes.</p>
+      <h1>Presupuestos</h1>
+      <p>Prepara y envía presupuestos antes de facturar a tus clientes.</p>
    </div>
    <div>
-      <a href="{% url 'add-invoice' %}" class="btn btn-primary">+ Nueva factura</a>
+      <a href="{% url 'add-presupuesto' %}" class="btn btn-primary">+ Nuevo presupuesto</a>
       <a href="{% url 'add-customer' %}" class="btn btn-secondary">+ Nuevo cliente</a>
    </div>
 </div>
@@ -29,35 +29,31 @@
                <th scope="col">NOMBRE DEL CLIENTE</th>
                <th scope="col">DATE</th>
                <th scope="col">TOTAL</th>
-               <th scope="col">PAGADO</th>
+               <th scope="col">ESTADO</th>
                <th scope="col">ACTION</th>
             </tr>
          </thead>
          <tbody id="myTable">
-            {% if invoices %}
-            {% for facture in invoices %}
+            {% if presupuestos %}
+            {% for presupuesto in presupuestos %}
             <tr>
-               <th scope="row">{{ facture.pk }}</th>
-               <td>{{facture.customer.name}}</td>
-               <td>{{facture.invoice_date_time}}</td>
-               <td>{{ facture.get_total }}</td>
+               <th scope="row">{{ presupuesto.pk }}</th>
+               <td>{{presupuesto.customer.name}}</td>
+               <td>{{presupuesto.presupuesto_date_time}}</td>
+               <td>{{ presupuesto.get_total }}</td>
                <td>
-                  {% if facture.paid %}
-                  <img src="{% static 'images/icon-yes.svg' %}" alt="True">
-                  {% else %}
-                  <img src="{% static 'images/icon-no.svg' %}" alt="False">
-                  {% endif %}
+                  <span class="badge status-badge status-{{presupuesto.status}}">{{ presupuesto.get_status_display }}</span>
                </td>
                <td>
-                  <a href="{% url 'view-invoice' pk=facture.pk %}" title="Detail" class="badge text-white bg-success">Vista</a>
+                  <a href="{% url 'view-presupuesto' pk=presupuesto.pk %}" title="Detail" class="badge text-white bg-success">Vista</a>
 
-                  <button id="btn-invoice-sup" type="button" data-toggle="modal" data-target="#supprimer"
-                     class="badge text-white bg-danger" title="Supprimer" data-id="{{ facture.pk }}"
-                     data-customer="{{facture.customer.name}}">Borrar
+                  <button id="btn-presupuesto-sup" type="button" data-toggle="modal" data-target="#supprimer"
+                     class="badge text-white bg-danger" title="Supprimer" data-id="{{ presupuesto.pk }}"
+                     data-customer="{{presupuesto.customer.name}}">Borrar
                   </button>
 
-                  <button id="btn-invoice-mod" type="button" data-toggle="modal" title="Modifier" data-target="#modifier"
-                     data-id="{{facture.pk}}" data-customer="{{facture.customer.name}}"
+                  <button id="btn-presupuesto-mod" type="button" data-toggle="modal" title="Modifier" data-target="#modifier"
+                     data-id="{{presupuesto.pk}}" data-customer="{{presupuesto.customer.name}}" data-status="{{presupuesto.status}}"
                      class="badge text-dark bg-warning"> Modificar
                   </button>
                </td>
@@ -66,7 +62,7 @@
             {% endfor %}
             {% else %}
             <tr>
-               <td colspan="6" class="text-center" style="color: var(--text-muted); padding: 2rem 0;">No se han encontrado facturas.</td>
+               <td colspan="6" class="text-center" style="color: var(--text-muted); padding: 2rem 0;">No se han encontrado presupuestos.</td>
             </tr>
             {% endif %}
 
@@ -75,16 +71,16 @@
       </table>
    </div>
 
-   {% if invoices.has_other_pages %}
+   {% if presupuestos.has_other_pages %}
 
    <div class="btn-group mt-3" role="group" aria-label="Item pagination">
 
-      {% if invoices.has_previous %}
-      <a href="?page={{ invoices.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
+      {% if presupuestos.has_previous %}
+      <a href="?page={{ presupuestos.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
       {% endif %}
 
-      {% for page_number in invoices.paginator.page_range %}
-         {% if invoices.number == page_number %}
+      {% for page_number in presupuestos.paginator.page_range %}
+         {% if presupuestos.number == page_number %}
             <button class="btn btn-outline-primary active">
                <span> {{page_number}} <span class="sr-only">(current)</span></span>
             </button>
@@ -93,8 +89,8 @@
          {% endif %}
       {% endfor %}
 
-      {% if invoices.has_next %}
-         <a href="?page={{ invoices.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
+      {% if presupuestos.has_next %}
+         <a href="?page={{ presupuestos.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
       {% endif %}
 
    </div>
@@ -109,7 +105,7 @@
    <div class="modal-dialog" role="document">
       <div class="modal-content">
          <div class="modal-header">
-            <h5 class="modal-title text-center" id="exampleModalLabel">Modification</h5>
+            <h5 class="modal-title text-center" id="exampleModalLabel">Modificación del estado</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                <span aria-hidden="true">&times;</span>
             </button>
@@ -120,15 +116,14 @@
 
                <input name="id_modified" type="hidden" id="id_modified">
 
-               <label id="label_id" class="checkbox-inline"> <strong id="strong_id"> Esta factura ha sido pagada?</strong></label>
+               <label id="label_id"> <strong id="strong_id"> Nuevo estado del presupuesto</strong></label>
 
-               <div>
-                  <input type="radio" id="html" name="modified" value="True">
-                  <label class="text-white bg-primary" for="html">Si</label>
-
-                  <input type="radio" id="css" name="modified" value="False">
-                  <label class="text-white bg-danger" for="css">No</label>
-               </div>
+               <select name="status" id="status_select" class="form-control">
+                  <option value="draft">Borrador</option>
+                  <option value="sent">Enviado</option>
+                  <option value="accepted">Aceptado</option>
+                  <option value="rejected">Rechazado</option>
+               </select>
 
             </div>
             <div class="modal-footer">
@@ -147,7 +142,7 @@
    <div class="modal-dialog" role="document">
       <div class="modal-content">
          <div class="modal-header">
-            <h5 class="modal-title" id="sexampleModalLabel">Delete Invoice</h5>
+            <h5 class="modal-title" id="sexampleModalLabel">Eliminar presupuesto</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                <span aria-hidden="true">&times;</span>
             </button>
@@ -156,7 +151,7 @@
             <form method="post">
                {% csrf_token %}
                <input name="id_supprimer" type="hidden" id="id_supprimer">
-               <label id="label_id_s" class="checkbox-inline"> <strong id="strong_id_s"> Estás seguro de que quieres eliminar la factura? </strong></label>
+               <label id="label_id_s"> <strong id="strong_id_s"> Estás seguro de que quieres eliminar el presupuesto? </strong></label>
 
                <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">anulador</button>
@@ -174,20 +169,18 @@
 
    // modification
 
-   $(document).on('click', '#btn-invoice-mod', function(){
-      let invoice_id = $(this).data('id');
-      let customer = $(this).data('customer');
-      $('#id_modified').val(invoice_id);
-
+   $(document).on('click', '#btn-presupuesto-mod', function(){
+      let presupuesto_id = $(this).data('id');
+      let status = $(this).data('status');
+      $('#id_modified').val(presupuesto_id);
+      $('#status_select').val(status);
    })
 
-   // deleting of invoice
+   // deleting of presupuesto
 
-   $(document).on('click', '#btn-invoice-sup', function(){
-      let invoice_id = $(this).data('id');
-      let customer = $(this).data('customer');
-      $('#id_supprimer').val(invoice_id);
-
+   $(document).on('click', '#btn-presupuesto-sup', function(){
+      let presupuesto_id = $(this).data('id');
+      $('#id_supprimer').val(presupuesto_id);
    })
 
    $(document).ready(function(){

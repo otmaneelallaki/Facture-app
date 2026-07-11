@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="landing-hero">
+    <img src="{% static 'images/Logo.png' %}" class="landing-logo" alt="Logo">
+    <h1 class="landing-title">Mohamed Compañía</h1>
+    <p class="landing-subtitle">Elige qué quieres gestionar hoy</p>
+</div>
+
+<div class="row landing-cards">
+
+    <div class="col-md-6">
+        <a href="{% url 'home' %}" class="landing-card landing-card-invoice">
+            <div class="landing-card-icon">🧾</div>
+            <h2>Facturas</h2>
+            <p>Consulta, crea y gestiona las facturas de tus clientes.</p>
+            <span class="landing-card-count">{{ invoices_count }} factura{{ invoices_count|pluralize }}</span>
+            <span class="btn btn-primary landing-card-btn">Ir a Facturas &rarr;</span>
+        </a>
+    </div>
+
+    <div class="col-md-6">
+        <a href="{% url 'presupuesto-home' %}" class="landing-card landing-card-presupuesto">
+            <div class="landing-card-icon">📋</div>
+            <h2>Presupuestos</h2>
+            <p>Prepara y envía presupuestos antes de facturar a tus clientes.</p>
+            <span class="landing-card-count">{{ presupuestos_count }} presupuesto{{ presupuestos_count|pluralize }}</span>
+            <span class="btn landing-card-btn landing-card-btn-presupuesto">Ir a Presupuestos &rarr;</span>
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

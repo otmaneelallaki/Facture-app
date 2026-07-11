@@ -1,12 +1,104 @@
 {% extends 'admin/base.html' %} {% block extrahead %}{{ block.super }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --primary: #1A233A;
-    --secondary: #1A233A;
-    --accent: white;
-    --primary-fg: white;
-    --header-color: white;
-    --darkened-bg: white;
+    --primary: #2f71c1;
+    --secondary: #10162a;
+    --accent: #c0d64a;
+    --primary-fg: #ffffff;
+
+    --body-fg: #d7e2f5;
+    --body-bg: #10162a;
+    --body-quiet-color: #93a2c9;
+    --body-loud-color: #ffffff;
+
+    --header-color: #ffffff;
+    --header-branding-color: var(--accent);
+    --header-bg: var(--secondary);
+    --header-link-color: var(--primary-fg);
+
+    --breadcrumbs-fg: #93a2c9;
+    --breadcrumbs-link-fg: #ffffff;
+    --breadcrumbs-bg: #0c1122;
+
+    --link-fg: #7ab8f5;
+    --link-hover-color: #a5d1ff;
+    --link-selected-fg: #7ab8f5;
+
+    --hairline-color: #2b3560;
+    --border-color: #2b3560;
+
+    --error-fg: #ef5b5b;
+    --message-success-bg: #163d29;
+    --message-warning-bg: #3d3016;
+    --message-error-bg: #3d1616;
+
+    --darkened-bg: #161d38;
+    --selected-bg: #1c2540;
+    --selected-row: #1c2c46;
+
+    --button-fg: #ffffff;
+    --button-bg: var(--primary);
+    --button-hover-bg: #4f8ef7;
+    --default-button-bg: #2b3560;
+    --default-button-hover-bg: #35406e;
+    --close-button-bg: #46567d;
+    --close-button-hover-bg: #59699a;
+    --delete-button-bg: #c0392b;
+    --delete-button-hover-bg: #a83224;
+
+    --object-tools-fg: var(--button-fg);
+    --object-tools-bg: var(--close-button-bg);
+    --object-tools-hover-bg: var(--close-button-hover-bg);
+  }
+
+  body, input, select, textarea, .button, button {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  }
+
+  #header {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  #branding h1 {
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+
+  div.breadcrumbs {
+    font-size: .8rem;
+  }
+
+  .module {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .button, input[type=submit], input[type=button], .submit-row input, a.button {
+    border-radius: 8px !important;
+  }
+
+  #content-related .module, .dashboard .module table td a {
+    border-radius: 12px;
+  }
+
+  .login #container {
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  }
+
+  .login .form-row #id_username,
+  .login .form-row #id_password {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--body-bg);
+    color: var(--body-fg);
+  }
+
+  .login .submit-row input {
+    width: 100%;
   }
 </style>
 {% endblock %}
